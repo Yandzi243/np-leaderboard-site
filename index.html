@@ -685,7 +685,24 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+// ── FIREBASE SETUP ───────────────────────────────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBs10LVUQTKtvBt3im0W5Pp_XgKqmnmU-w",
+  authDomain: "night-prowlers.firebaseapp.com",
+  projectId: "night-prowlers",
+  storageBucket: "night-prowlers.firebasestorage.app",
+  messagingSenderId: "192565490320",
+  appId: "1:192565490320:web:99b9a3c3efce481c689e15"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const DATA_DOC = doc(db, "leaderboard", "main");
+
 // ── DATA STORE ──────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = "nightprowlers2026"; // Смените пароль здесь!
 
@@ -695,16 +712,24 @@ let data = {
   top: { pc: [], mobile: [] }
 };
 
-// Load from localStorage
-function loadData() {
-  const saved = localStorage.getItem('np_data');
-  if (saved) {
-    try { data = JSON.parse(saved); } catch(e) {}
+async function loadData() {
+  try {
+    const snap = await getDoc(DATA_DOC);
+    if (snap.exists()) {
+      data = snap.data();
+    }
+  } catch(e) {
+    console.error("Ошибка загрузки из Firebase:", e);
   }
 }
 
-function saveData() {
-  localStorage.setItem('np_data', JSON.stringify(data));
+async function saveData() {
+  try {
+    await setDoc(DATA_DOC, data);
+  } catch(e) {
+    console.error("Ошибка сохранения в Firebase:", e);
+    alert("Ошибка сохранения! Проверьте консоль.");
+  }
 }
 
 // ── DIFFICULTY ───────────────────────────────────────────────────────────
@@ -840,7 +865,7 @@ function switchAdminTab(tab) {
   if (tab === 'manage') renderManageList();
 }
 
-function addEntry() {
+async function addEntry() {
   const section = document.getElementById('add-section').value;
   const platform = document.getElementById('add-platform').value;
   const name = document.getElementById('add-name').value.trim();
@@ -856,7 +881,7 @@ function addEntry() {
     data[section][platform].push({ name, player, difficulty });
   }
 
-  saveData();
+  await saveData();
   renderAll();
   renderManageList();
 
@@ -864,6 +889,7 @@ function addEntry() {
   document.getElementById('add-player').value = '';
   document.getElementById('add-points').value = '';
 }
+window.addEntry = addEntry;
 
 function renderManageList() {
   const section = document.getElementById('manage-section').value;
@@ -889,22 +915,34 @@ function renderManageList() {
   `).join('');
 }
 
-function deleteEntry(section, platform, index) {
+async function deleteEntry(section, platform, index) {
   if (!confirm('Удалить запись?')) return;
   data[section][platform].splice(index, 1);
-  saveData();
+  await saveData();
   renderAll();
   renderManageList();
 }
+window.deleteEntry = deleteEntry;
 
 // Close modal on overlay click
 document.getElementById('adminModal').addEventListener('click', function(e) {
   if (e.target === this) closeAdmin();
 });
 
+// Expose globals for inline onclick handlers
+window.showPage = showPage;
+window.switchPlatform = switchPlatform;
+window.openAdmin = openAdmin;
+window.closeAdmin = closeAdmin;
+window.checkPassword = checkPassword;
+window.switchAdminTab = switchAdminTab;
+window.renderManageList = renderManageList;
+
 // ── INIT ─────────────────────────────────────────────────────────────────
-loadData();
-renderAll();
+(async () => {
+  await loadData();
+  renderAll();
+})();
 </script>
 </body>
 </html>
