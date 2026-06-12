@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Night Prowlers Leaderboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #080808;
+    --dark: #111111;
+    --dark2: #1a1a1a;
+    --border: #2a2a2a;
+    --gray: #555555;
+    --gray2: #888888;
+    --light: #cccccc;
+    --white: #f0f0f0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--black); color: var(--white); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, #1f1f1f 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.015) 60px, rgba(255,255,255,0.015) 61px),
+      repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.015) 60px, rgba(255,255,255,0.015) 61px);
+    pointer-events: none; z-index: 0;
+  }
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8,8,8,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 64px;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; color: var(--white); display: flex; align-items: center; gap: 12px; }
+  .logo-dot { width: 8px; height: 8px; background: var(--white); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+  nav { display: flex; gap: 4px; }
+  nav button {
+    background: none; border: none; color: var(--gray2);
+    font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 8px 14px; cursor: pointer; transition: all 0.2s; border-radius: 4px;
+  }
+  nav button:hover { color: var(--white); background: var(--dark2); }
+  nav button.active { color: var(--white); background: var(--dark2); border: 1px solid var(--border); }
+  .admin-btn {
+    background: none !important; border: 1px solid var(--border) !important; color: var(--gray) !important;
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px;
+    padding: 6px 12px !important; cursor: pointer; transition: all 0.2s; border-radius: 4px;
+  }
+  .admin-btn:hover { color: var(--white) !important; border-color: var(--gray) !important; }
+  main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 60px 24px; }
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .page-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 8vw, 96px); letter-spacing: 4px; line-height: 0.9; margin-bottom: 8px; }
+  .page-sub { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--gray); text-transform: uppercase; margin-bottom: 48px; }
+  .platform-tabs { display: flex; margin-bottom: 32px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content; }
+  .platform-tab {
+    background: none; border: none; color: var(--gray);
+    font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 10px 24px; cursor: pointer; transition: all 0.2s; border-right: 1px solid var(--border);
+  }
+  .platform-tab:last-child { border-right: none; }
+  .platform-tab.active { background: var(--dark2); color: var(--white); }
+  .list-container { display: flex; flex-direction: column; gap: 2px; }
+  .list-item {
+    display: grid; grid-template-columns: 52px 1fr auto auto;
+    align-items: center; gap: 16px; padding: 16px 20px;
+    background: var(--dark); border: 1px solid var(--border); border-radius: 6px;
+    transition: all 0.2s; animation: slideIn 0.3s ease both;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+  .list-item:hover { background: var(--dark2); border-color: var(--gray); }
+  .list-item:nth-child(1) { border-left: 3px solid #ffffff; }
+  .list-item:nth-child(2) { border-left: 3px solid #bbbbbb; }
+  .list-item:nth-child(3) { border-left: 3px solid #777777; }
+  .rank { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--gray); line-height: 1; text-align: center; }
+  .list-item:nth-child(1) .rank { color: var(--white); }
+  .list-item:nth-child(2) .rank { color: var(--light); }
+  .list-item:nth-child(3) .rank { color: var(--gray2); }
+  .item-info { display: flex; flex-direction: column; gap: 3px; }
+  .item-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 15px; color: var(--white); }
+  .item-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gray); letter-spacing: 0.5px; }
+  .difficulty-badge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; border: 1px solid; }
+  .diff-hard { color: #aaa; border-color: #444; background: rgba(170,170,170,0.06); }
+  .diff-insane { color: #ddd; border-color: #666; background: rgba(220,220,220,0.06); }
+  .diff-extreme { color: #fff; border-color: #999; background: rgba(255,255,255,0.08); }
+  .item-points { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--white); text-align: right; white-space: nowrap; }
+  .item-points span { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--gray); display: block; text-align: right; margin-top: 1px; }
+  .top-item { grid-template-columns: 52px 1fr auto; }
+  .empty-state { text-align: center; padding: 80px 20px; color: var(--gray); font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 1px; border: 1px dashed var(--border); border-radius: 8px; }
+  .empty-state::before { content: '—'; display: block; font-size: 32px; margin-bottom: 12px; color: var(--border); }
+  .loading { text-align: center; padding: 60px; color: var(--gray); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; }
+  .loading::after { content: ''; display: inline-block; width: 12px; height: 12px; border: 1px solid var(--gray); border-top-color: var(--white); border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; backdrop-filter: blur(8px); align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--dark); border: 1px solid var(--border); border-radius: 12px; width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: modalIn 0.25s ease; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .modal-header { padding: 24px 28px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; }
+  .modal-close { background: none; border: none; color: var(--gray); font-size: 20px; cursor: pointer; padding: 4px; transition: color 0.2s; }
+  .modal-close:hover { color: var(--white); }
+  .modal-body { padding: 24px 28px; }
+  .admin-tabs { display: flex; margin-bottom: 24px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .admin-tab { flex: 1; background: none; border: none; border-right: 1px solid var(--border); color: var(--gray); font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 9px; cursor: pointer; transition: all 0.2s; }
+  .admin-tab:last-child { border-right: none; }
+  .admin-tab.active { background: var(--dark2); color: var(--white); }
+  .admin-section { display: none; }
+  .admin-section.active { display: block; }
+  .form-group { margin-bottom: 16px; }
+  label { display: block; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray2); margin-bottom: 6px; }
+  input, select { width: 100%; background: var(--dark2); border: 1px solid var(--border); border-radius: 6px; color: var(--white); font-family: 'DM Mono', monospace; font-size: 13px; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
+  input:focus, select:focus { border-color: var(--gray); }
+  select option { background: var(--dark2); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn { width: 100%; padding: 12px; background: var(--white); color: var(--black); border: none; border-radius: 6px; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+  .btn:hover { background: var(--light); transform: translateY(-1px); }
+  .btn-danger { background: transparent; color: #ff4444; border: 1px solid #ff4444; }
+  .btn-danger:hover { background: rgba(255,68,68,0.1); transform: none; }
+  .manage-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .manage-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--dark2); border: 1px solid var(--border); border-radius: 6px; gap: 8px; }
+  .manage-item-info { flex: 1; min-width: 0; }
+  .manage-item-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .manage-item-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gray); margin-top: 2px; }
+  .delete-btn { background: none; border: none; color: var(--gray); cursor: pointer; font-size: 16px; padding: 4px 6px; border-radius: 4px; transition: all 0.15s; flex-shrink: 0; }
+  .delete-btn:hover { color: #ff4444; background: rgba(255,68,68,0.1); }
+  .pw-screen { display: flex; flex-direction: column; gap: 12px; }
+  .pw-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--gray2); text-transform: uppercase; margin-bottom: 4px; }
+  .pw-error { font-family: 'DM Mono', monospace; font-size: 11px; color: #ff4444; display: none; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--dark2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--white); z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.3s; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  @media (max-width: 600px) {
+    header { padding: 0 16px; }
+    .logo { font-size: 16px; }
+    nav button { font-size: 9px; padding: 6px 8px; }
+    main { padding: 32px 16px; }
+    .list-item { grid-template-columns: 40px 1fr auto; gap: 10px; padding: 12px 14px; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="logo-dot"></div>NIGHT PROWLERS</div>
+  <nav>
+    <button class="active" onclick="showPage('demonlist', this)">Demon List</button>
+    <button onclick="showPage('challengelist', this)">Challenge List</button>
+    <button onclick="showPage('top', this)">Top Players</button>
+  </nav>
+  <button class="admin-btn" onclick="openAdmin()">ADMIN</button>
+</header>
+
+<main>
+  <!-- DEMON LIST -->
+  <div class="page active" id="page-demonlist">
+    <div class="page-title">DEMON<br>LIST</div>
+    <div class="page-sub">Night Prowlers · Официальный список демонов</div>
+    <div class="platform-tabs">
+      <button class="platform-tab active" onclick="switchPlatform('demonlist','pc',this)">PC</button>
+      <button class="platform-tab" onclick="switchPlatform('demonlist','mobile',this)">Mobile</button>
+    </div>
+    <div class="list-container" id="demonlist-pc"><div class="loading">Загрузка</div></div>
+    <div class="list-container" id="demonlist-mobile" style="display:none"><div class="loading">Загрузка</div></div>
+  </div>
+
+  <!-- CHALLENGE LIST -->
+  <div class="page" id="page-challengelist">
+    <div class="page-title">CHALLENGE<br>LIST</div>
+    <div class="page-sub">Night Prowlers · Официальный список челленджей</div>
+    <div class="platform-tabs">
+      <button class="platform-tab active" onclick="switchPlatform('challengelist','pc',this)">PC</button>
+      <button class="platform-tab" onclick="switchPlatform('challengelist','mobile',this)">Mobile</button>
+    </div>
+    <div class="list-container" id="challengelist-pc"><div class="loading">Загрузка</div></div>
+    <div class="list-container" id="challengelist-mobile" style="display:none"><div class="loading">Загрузка</div></div>
+  </div>
+
+  <!-- TOP PLAYERS -->
+  <div class="page" id="page-top">
+    <div class="page-title">TOP<br>PLAYERS</div>
+    <div class="page-sub">Night Prowlers · Рейтинг игроков по очкам</div>
+    <div class="platform-tabs">
+      <button class="platform-tab active" onclick="switchPlatform('top','pc',this)">PC</button>
+      <button class="platform-tab" onclick="switchPlatform('top','mobile',this)">Mobile</button>
+    </div>
+    <div class="list-container" id="top-pc"><div class="loading">Загрузка</div></div>
+    <div class="list-container" id="top-mobile" style="display:none"><div class="loading">Загрузка</div></div>
+  </div>
+</main>
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">ADMIN PANEL</div>
+      <button class="modal-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="pw-screen" class="pw-screen">
+        <div class="pw-title">Введите пароль</div>
+        <input type="password" id="pw-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()">
+        <div class="pw-error" id="pw-error">Неверный пароль</div>
+        <button class="btn" onclick="checkPassword()">ВОЙТИ</button>
+      </div>
+      <div id="admin-panel" style="display:none">
+        <div class="admin-tabs">
+          <button class="admin-tab active" onclick="switchAdminTab('add',this)">Добавить</button>
+          <button class="admin-tab" onclick="switchAdminTab('manage',this)">Управление</button>
+        </div>
+
+        <!-- ADD -->
+        <div class="admin-section active" id="admin-add">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Раздел</label>
+              <select id="add-section" onchange="togglePointsField()">
+                <option value="demonlist">Demon List</option>
+                <option value="challengelist">Challenge List</option>
+                <option value="top">Top Players</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Платформа</label>
+              <select id="add-platform">
+                <option value="pc">PC</option>
+                <option value="mobile">Mobile</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label id="name-label">Название уровня</label>
+            <input type="text" id="add-name" placeholder="Bloodbath / YandziGMD">
+          </div>
+          <div class="form-group" id="player-group">
+            <label>Кто прошёл</label>
+            <input type="text" id="add-player" placeholder="YandziGMD">
+          </div>
+          <div class="form-row">
+            <div class="form-group" id="diff-group">
+              <label>Сложность</label>
+              <select id="add-difficulty">
+                <option value="Hard Demon">Hard Demon</option>
+                <option value="Insane Demon">Insane Demon</option>
+                <option value="Extreme Demon">Extreme Demon</option>
+              </select>
+            </div>
+            <div class="form-group" id="points-group" style="display:none">
+              <label>Очки</label>
+              <input type="number" id="add-points" placeholder="0" step="0.5" min="0">
+            </div>
+            <div class="form-group" id="demons-group" style="display:none">
+              <label>Кол-во демонов</label>
+              <input type="number" id="add-demons" placeholder="0" min="0">
+            </div>
+          </div>
+          <button class="btn" onclick="addEntry()">ДОБАВИТЬ</button>
+        </div>
+
+        <!-- MANAGE -->
+        <div class="admin-section" id="admin-manage">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Раздел</label>
+              <select id="manage-section" onchange="renderManageList()">
+                <option value="demonlist">Demon List</option>
+                <option value="challengelist">Challenge List</option>
+                <option value="top">Top Players</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Платформа</label>
+              <select id="manage-platform" onchange="renderManageList()">
+                <option value="pc">PC</option>
+                <option value="mobile">Mobile</option>
+              </select>
+            </div>
+          </div>
+          <div class="manage-list" id="manage-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+// ── CONFIG (твои ключи) ──────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBs10LVUQTKtvBt3im0W5Pp_XgKqmnmU-w",
+  authDomain: "night-prowlers.firebaseapp.com",
+  projectId: "night-prowlers",
+  storageBucket: "night-prowlers.firebasestorage.app",
+  messagingSenderId: "192565490320",
+  appId: "1:192565490320:web:930f6fc897717e2f689e15"
+};
+
+const ADMIN_PASSWORD = "nightprowlers2026"; // Смените пароль!
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const LISTS = ["demonlist_pc","demonlist_mobile","challengelist_pc","challengelist_mobile","top_pc","top_mobile"];
+const DIFF_CLASS = { 'Hard Demon':'diff-hard', 'Insane Demon':'diff-insane', 'Extreme Demon':'diff-extreme' };
+
+// ── REAL-TIME LISTENERS ──────────────────────────────────────
+LISTS.forEach(listName => {
+  const ref = doc(db, "lists", listName);
+  onSnapshot(ref, snap => {
+    const items = snap.exists() ? (snap.data().items || []) : [];
+    renderList(listName, items);
+  });
+});
+
+// ── RENDER ───────────────────────────────────────────────────
+function renderList(listName, items) {
+  const [section, platform] = listName.split('_');
+  const el = document.getElementById(`${section}-${platform}`);
+  if (!el) return;
+
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state">Список пуст</div>';
+    return;
+  }
+
+  if (listName.startsWith('top')) {
+    const sorted = [...items].sort((a,b) => (parseFloat(b.points)||0) - (parseFloat(a.points)||0));
+    el.innerHTML = sorted.map((item, i) => `
+      <div class="list-item top-item" style="animation-delay:${i*0.04}s">
+        <div class="rank">${i+1}</div>
+        <div class="item-info">
+          <div class="item-name">${esc(item.player)}</div>
+          <div class="item-meta">${item.demons||0} демонов</div>
+        </div>
+        <div class="item-points">${fmtPts(item.points)}<span>очков</span></div>
+      </div>`).join('');
+  } else if (listName.startsWith('challenge')) {
+    el.innerHTML = items.map((item, i) => `
+      <div class="list-item" style="animation-delay:${i*0.04}s">
+        <div class="rank">${i+1}</div>
+        <div class="item-info">
+          <div class="item-name">${esc(item.name)}</div>
+          <div class="item-meta">${esc(item.player||'—')}</div>
+        </div>
+      </div>`).join('');
+  } else {
+    el.innerHTML = items.map((item, i) => `
+      <div class="list-item" style="animation-delay:${i*0.04}s">
+        <div class="rank">${i+1}</div>
+        <div class="item-info">
+          <div class="item-name">${esc(item.name)}</div>
+          <div class="item-meta">${esc(item.player||'—')}</div>
+        </div>
+        <div class="difficulty-badge ${DIFF_CLASS[item.difficulty]||'diff-hard'}">${esc(item.difficulty||'')}</div>
+        <div class="item-points">${fmtPts(item.points)}<span>очков</span></div>
+      </div>`).join('');
+  }
+}
+
+// ── ADD ENTRY ─────────────────────────────────────────────────
+window.addEntry = async function() {
+  const section = document.getElementById('add-section').value;
+  const platform = document.getElementById('add-platform').value;
+  const name = document.getElementById('add-name').value.trim();
+  const player = document.getElementById('add-player').value.trim();
+  const difficulty = document.getElementById('add-difficulty').value;
+  const points = parseFloat(document.getElementById('add-points').value) || 0;
+  const demons = parseInt(document.getElementById('add-demons').value) || 0;
+
+  if (!name) { showToast('⚠️ Введите название'); return; }
+
+  const listName = `${section}_${platform}`;
+  const ref = doc(db, "lists", listName);
+  const snap = await getDoc(ref);
+  const items = snap.exists() ? (snap.data().items || []) : [];
+
+  let newItem;
+  if (section === 'top') {
+    newItem = { player: name, points, demons };
+  } else if (section === 'challengelist') {
+    newItem = { name, player };
+  } else {
+    newItem = { name, player, difficulty, points };
+  }
+
+  items.push(newItem);
+  await setDoc(ref, { items });
+
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-player').value = '';
+  document.getElementById('add-points').value = '';
+  document.getElementById('add-demons').value = '';
+  showToast('✅ Добавлено!');
+  renderManageList();
+}
+
+// ── DELETE ENTRY ──────────────────────────────────────────────
+window.deleteEntry = async function(listName, index) {
+  if (!confirm('Удалить запись?')) return;
+  const ref = doc(db, "lists", listName);
+  const snap = await getDoc(ref);
+  const items = snap.exists() ? (snap.data().items || []) : [];
+  items.splice(index, 1);
+  await setDoc(ref, { items });
+  showToast('🗑️ Удалено');
+  renderManageList();
+}
+
+// ── MANAGE LIST ───────────────────────────────────────────────
+window.renderManageList = async function() {
+  const section = document.getElementById('manage-section').value;
+  const platform = document.getElementById('manage-platform').value;
+  const listName = `${section}_${platform}`;
+  const el = document.getElementById('manage-list');
+  el.innerHTML = '<div style="color:#555;font-family:DM Mono,monospace;font-size:11px;padding:8px">Загрузка...</div>';
+
+  const ref = doc(db, "lists", listName);
+  const snap = await getDoc(ref);
+  const items = snap.exists() ? (snap.data().items || []) : [];
+
+  if (!items.length) {
+    el.innerHTML = '<div style="color:#555;font-family:DM Mono,monospace;font-size:11px;padding:8px">Список пуст</div>';
+    return;
+  }
+
+  el.innerHTML = items.map((item, i) => `
+    <div class="manage-item">
+      <div class="manage-item-info">
+        <div class="manage-item-name">${esc(item.name || item.player)}</div>
+        <div class="manage-item-meta">
+          ${section === 'top' ? `${fmtPts(item.points||0)} очков · ${item.demons||0} дем.`
+            : section === 'challengelist' ? esc(item.player||'—')
+            : `${esc(item.player||'—')} · ${esc(item.difficulty||'')} · ${fmtPts(item.points||0)} очк.`}
+        </div>
+      </div>
+      <button class="delete-btn" onclick="deleteEntry('${listName}',${i})">✕</button>
+    </div>`).join('');
+}
+
+// ── PASSWORD ──────────────────────────────────────────────────
+window.checkPassword = function() {
+  if (document.getElementById('pw-input').value === ADMIN_PASSWORD) {
+    document.getElementById('pw-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = '';
+    renderManageList();
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtPts(p) { const n = parseFloat(p)||0; return n === Math.floor(n) ? n : n.toFixed(1); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+</script>
+
+<script>
+// ── NAVIGATION ────────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+const activePlatform = { demonlist: 'pc', challengelist: 'pc', top: 'pc' };
+function switchPlatform(section, platform, btn) {
+  activePlatform[section] = platform;
+  btn.closest('.platform-tabs').querySelectorAll('.platform-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['pc','mobile'].forEach(p => {
+    const el = document.getElementById(`${section}-${p}`);
+    if (el) el.style.display = p === platform ? '' : 'none';
+  });
+}
+
+function openAdmin() {
+  document.getElementById('adminModal').classList.add('open');
+  document.getElementById('pw-screen').style.display = '';
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-error').style.display = 'none';
+  setTimeout(() => document.getElementById('pw-input').focus(), 100);
+}
+function closeAdmin() { document.getElementById('adminModal').classList.remove('open'); }
+
+function switchAdminTab(tab, btn) {
+  document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('admin-' + tab).classList.add('active');
+  if (tab === 'manage') window.renderManageList && renderManageList();
+}
+
+function togglePointsField() {
+  const section = document.getElementById('add-section').value;
+  document.getElementById('player-group').style.display = section === 'top' ? 'none' : '';
+  document.getElementById('diff-group').style.display = section !== 'demonlist' ? 'none' : '';
+  document.getElementById('points-group').style.display = section === 'top' ? '' : section === 'demonlist' ? '' : 'none';
+  document.getElementById('demons-group').style.display = section === 'top' ? '' : 'none';
+  document.getElementById('name-label').textContent = section === 'top' ? 'Ник игрока' : 'Название уровня';
+}
+
+document.getElementById('adminModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAdmin();
+});
+</script>
+</body>
+</html>
