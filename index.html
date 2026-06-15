@@ -161,7 +161,6 @@
 </header>
 
 <main>
-  <!-- DEMON LIST -->
   <div class="page active" id="page-demonlist">
     <div class="page-title">DEMON<br>LIST</div>
     <div class="page-sub">Night Prowlers · Официальный список демонов</div>
@@ -173,7 +172,6 @@
     <div class="list-container" id="demonlist-mobile" style="display:none"><div class="loading">Загрузка</div></div>
   </div>
 
-  <!-- CHALLENGE LIST -->
   <div class="page" id="page-challengelist">
     <div class="page-title">CHALLENGE<br>LIST</div>
     <div class="page-sub">Night Prowlers · Официальный список челленджей</div>
@@ -185,7 +183,6 @@
     <div class="list-container" id="challengelist-mobile" style="display:none"><div class="loading">Загрузка</div></div>
   </div>
 
-  <!-- TOP PLAYERS -->
   <div class="page" id="page-top">
     <div class="page-title">TOP<br>PLAYERS</div>
     <div class="page-sub">Night Prowlers · Рейтинг игроков по очкам</div>
@@ -198,7 +195,6 @@
   </div>
 </main>
 
-<!-- ADMIN MODAL -->
 <div class="modal-overlay" id="adminModal">
   <div class="modal">
     <div class="modal-header">
@@ -219,7 +215,6 @@
           <button class="admin-tab" onclick="switchAdminTab('manage',this)">Управление</button>
         </div>
 
-        <!-- ADD -->
         <div class="admin-section active" id="admin-add">
           <div class="form-row">
             <div class="form-group">
@@ -267,7 +262,6 @@
           <button class="btn" onclick="addEntry()">ДОБАВИТЬ</button>
         </div>
 
-        <!-- MANAGE -->
         <div class="admin-section" id="admin-manage">
           <div class="form-row">
             <div class="form-group">
@@ -289,7 +283,6 @@
           <div class="manage-list" id="manage-list"></div>
         </div>
 
-        <!-- IMPORT -->
         <div class="admin-section" id="admin-import">
           <div class="form-row">
             <div class="form-group">
@@ -330,48 +323,38 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- ЕДИНЫЙ СКРИПТ ПРИЛОЖЕНИЯ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
-// ── CONFIG (ВОЗВРАЩЕН ПРАВИЛЬНЫЙ АПП_ИД) ───────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyBs10LVUQTKtvBt3im0W5Pp_XgKqmnmU-w",
   authDomain: "night-prowlers.firebaseapp.com",
   projectId: "night-prowlers",
   storageBucket: "night-prowlers.firebasestorage.app",
   messagingSenderId: "192565490320",
-  appId: "1:192565490320:web:99b9a3c3efce481c689e15" // Исправлено на валидный из firebase.js!
+  appId: "1:192565490320:web:99b9a3c3efce481c689e15"
 };
-
-const ADMIN_PASSWORD = "nightprowlers2026";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const LISTS = ["demonlist_pc","demonlist_mobile","challengelist_pc","challengelist_mobile","top_pc","top_mobile"];
 const DIFF_CLASS = { 'Hard Demon':'diff-hard', 'Insane Demon':'diff-insane', 'Extreme Demon':'diff-extreme' };
 
-// ── REAL-TIME LISTENERS (С ВЫВОДОМ ОШИБОК) ───────────────────
+// ── REAL-TIME LISTENERS ──────────────────────────────────────
 LISTS.forEach(listName => {
   const ref = doc(db, "lists", listName);
   onSnapshot(ref, snap => {
     const items = snap.exists() ? (snap.data().items || []) : [];
     renderList(listName, items);
   }, error => {
-    // Если Firebase вернет ошибку, она отобразится прямо на странице вместо загрузки
-    console.error(`Ошибка загрузки ${listName}:`, error);
-    const [section, platform] = listName.split('_');
-    const el = document.getElementById(`${section}-${platform}`);
-    if (el) {
-      el.innerHTML = `<div class="empty-state" style="color: #ff4444; border-color: #ff4444; font-size: 11px;">
-        ⚠️ Ошибка Firebase (${error.code})<br>
-        <span style="color: #888; font-size: 10px;">${error.message}</span>
-      </div>`;
-    }
+    console.error("Ошибка загрузки данных:", error);
   });
 });
+
 // ── RENDER ───────────────────────────────────────────────────
 function renderList(listName, items) {
   const [section, platform] = listName.split('_');
@@ -498,13 +481,18 @@ window.renderManageList = async function() {
     </div>`).join('');
 }
 
-// ── PASSWORD ──────────────────────────────────────────────────
-window.checkPassword = function() {
-  if (document.getElementById('pw-input').value === ADMIN_PASSWORD) {
+// ── БЕЗОПАСНАЯ АВТОРИЗАЦИЯ FIREBASE ───────────────────────────
+window.checkPassword = async function() {
+  const password = document.getElementById('pw-input').value;
+  const adminEmail = "admin@nightprowlers.com"; 
+
+  try {
+    await signInWithEmailAndPassword(auth, adminEmail, password);
     document.getElementById('pw-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
     window.renderManageList();
-  } else {
+  } catch (error) {
+    console.error("Ошибка входа:", error);
     document.getElementById('pw-error').style.display = 'block';
     document.getElementById('pw-input').value = '';
   }
@@ -518,9 +506,7 @@ window.showPage = function(name, btn) {
   if (btn) btn.classList.add('active');
 }
 
-const activePlatform = { demonlist: 'pc', challengelist: 'pc', top: 'pc' };
 window.switchPlatform = function(section, platform, btn) {
-  activePlatform[section] = platform;
   btn.closest('.platform-tabs').querySelectorAll('.platform-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   ['pc','mobile'].forEach(p => {
@@ -559,7 +545,7 @@ window.togglePointsField = function() {
   document.getElementById('name-label').textContent = section === 'top' ? 'Ник игрока' : 'Название уровня';
 }
 
-// ── CSV IMPORT (ТЕПЕРЬ НАПРЯМУЮ СВЯЗАН С FIREBASE) ──────────────
+// ── CSV IMPORT ────────────────────────────────────────────────
 window.importCSV = async function() {
   const file = document.getElementById('import-file').files[0];
   if (!file) { showToast('⚠️ Выберите файл'); return; }
@@ -596,7 +582,6 @@ window.importCSV = async function() {
     (items.length > 5 ? '<div style="font-family:DM Mono,monospace;font-size:10px;color:#555;padding:4px 0">...и ещё ' + (items.length-5) + '</div>' : '') +
     '<button class="btn" id="confirm-import-btn">✅ ПОДТВЕРДИТЬ ИМПОРТ</button>';
 
-  // Вешаем обработчик динамически внутри области видимости модуля
   document.getElementById('confirm-import-btn').onclick = function() {
     window.confirmImport(listName, items);
   };
@@ -648,7 +633,6 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// Закрытие модалки по клику на оверлей
 document.getElementById('adminModal').addEventListener('click', function(e) {
   if (e.target === this) window.closeAdmin();
 });
