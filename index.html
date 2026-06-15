@@ -353,15 +353,25 @@ const db = getFirestore(app);
 const LISTS = ["demonlist_pc","demonlist_mobile","challengelist_pc","challengelist_mobile","top_pc","top_mobile"];
 const DIFF_CLASS = { 'Hard Demon':'diff-hard', 'Insane Demon':'diff-insane', 'Extreme Demon':'diff-extreme' };
 
-// ── REAL-TIME LISTENERS ──────────────────────────────────────
+// ── REAL-TIME LISTENERS (С ВЫВОДОМ ОШИБОК) ───────────────────
 LISTS.forEach(listName => {
   const ref = doc(db, "lists", listName);
   onSnapshot(ref, snap => {
     const items = snap.exists() ? (snap.data().items || []) : [];
     renderList(listName, items);
+  }, error => {
+    // Если Firebase вернет ошибку, она отобразится прямо на странице вместо загрузки
+    console.error(`Ошибка загрузки ${listName}:`, error);
+    const [section, platform] = listName.split('_');
+    const el = document.getElementById(`${section}-${platform}`);
+    if (el) {
+      el.innerHTML = `<div class="empty-state" style="color: #ff4444; border-color: #ff4444; font-size: 11px;">
+        ⚠️ Ошибка Firebase (${error.code})<br>
+        <span style="color: #888; font-size: 10px;">${error.message}</span>
+      </div>`;
+    }
   });
 });
-
 // ── RENDER ───────────────────────────────────────────────────
 function renderList(listName, items) {
   const [section, platform] = listName.split('_');
