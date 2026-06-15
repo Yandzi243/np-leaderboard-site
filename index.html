@@ -330,22 +330,22 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- FIREBASE -->
+<!-- ЕДИНЫЙ СКРИПТ ПРИЛОЖЕНИЯ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
-// ── CONFIG (твои ключи) ──────────────────────────────────────
+// ── CONFIG (ВОЗВРАЩЕН ПРАВИЛЬНЫЙ АПП_ИД) ───────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyBs10LVUQTKtvBt3im0W5Pp_XgKqmnmU-w",
   authDomain: "night-prowlers.firebaseapp.com",
   projectId: "night-prowlers",
   storageBucket: "night-prowlers.firebasestorage.app",
   messagingSenderId: "192565490320",
-  appId: "1:192565490320:web:930f6fc897717e2f689e15"
+  appId: "1:192565490320:web:99b9a3c3efce481c689e15" // Исправлено на валидный из firebase.js!
 };
 
-const ADMIN_PASSWORD = "nightprowlers2026"; // Смените пароль!
+const ADMIN_PASSWORD = "nightprowlers2026";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -417,7 +417,7 @@ window.addEntry = async function() {
   const points = parseFloat(document.getElementById('add-points').value) || 0;
   const demons = parseInt(document.getElementById('add-demons').value) || 0;
 
-  if (!name) { showToast('⚠️ Введите название'); return; }
+  if (!name) { showToast('⚠️ Введите название / ник'); return; }
 
   const listName = `${section}_${platform}`;
   const ref = doc(db, "lists", listName);
@@ -441,7 +441,7 @@ window.addEntry = async function() {
   document.getElementById('add-points').value = '';
   document.getElementById('add-demons').value = '';
   showToast('✅ Добавлено!');
-  renderManageList();
+  window.renderManageList();
 }
 
 // ── DELETE ENTRY ──────────────────────────────────────────────
@@ -453,7 +453,7 @@ window.deleteEntry = async function(listName, index) {
   items.splice(index, 1);
   await setDoc(ref, { items });
   showToast('🗑️ Удалено');
-  renderManageList();
+  window.renderManageList();
 }
 
 // ── MANAGE LIST ───────────────────────────────────────────────
@@ -462,6 +462,7 @@ window.renderManageList = async function() {
   const platform = document.getElementById('manage-platform').value;
   const listName = `${section}_${platform}`;
   const el = document.getElementById('manage-list');
+  if(!el) return;
   el.innerHTML = '<div style="color:#555;font-family:DM Mono,monospace;font-size:11px;padding:8px">Загрузка...</div>';
 
   const ref = doc(db, "lists", listName);
@@ -492,27 +493,15 @@ window.checkPassword = function() {
   if (document.getElementById('pw-input').value === ADMIN_PASSWORD) {
     document.getElementById('pw-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
-    renderManageList();
+    window.renderManageList();
   } else {
     document.getElementById('pw-error').style.display = 'block';
     document.getElementById('pw-input').value = '';
   }
 }
 
-// ── HELPERS ───────────────────────────────────────────────────
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function fmtPts(p) { const n = parseFloat(p)||0; return n === Math.floor(n) ? n : n.toFixed(1); }
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-</script>
-
-<script>
-// ── NAVIGATION ────────────────────────────────────────────────
-function showPage(name, btn) {
+// ── NAVIGATION & UI ───────────────────────────────────────────
+window.showPage = function(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
@@ -520,7 +509,7 @@ function showPage(name, btn) {
 }
 
 const activePlatform = { demonlist: 'pc', challengelist: 'pc', top: 'pc' };
-function switchPlatform(section, platform, btn) {
+window.switchPlatform = function(section, platform, btn) {
   activePlatform[section] = platform;
   btn.closest('.platform-tabs').querySelectorAll('.platform-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -530,7 +519,7 @@ function switchPlatform(section, platform, btn) {
   });
 }
 
-function openAdmin() {
+window.openAdmin = function() {
   document.getElementById('adminModal').classList.add('open');
   document.getElementById('pw-screen').style.display = '';
   document.getElementById('admin-panel').style.display = 'none';
@@ -538,17 +527,20 @@ function openAdmin() {
   document.getElementById('pw-error').style.display = 'none';
   setTimeout(() => document.getElementById('pw-input').focus(), 100);
 }
-function closeAdmin() { document.getElementById('adminModal').classList.remove('open'); }
 
-function switchAdminTab(tab, btn) {
+window.closeAdmin = function() { 
+  document.getElementById('adminModal').classList.remove('open'); 
+}
+
+window.switchAdminTab = function(tab, btn) {
   document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('admin-' + tab).classList.add('active');
-  if (tab === 'manage') window.renderManageList && renderManageList();
+  if (tab === 'manage') window.renderManageList();
 }
 
-function togglePointsField() {
+window.togglePointsField = function() {
   const section = document.getElementById('add-section').value;
   document.getElementById('player-group').style.display = section === 'top' ? 'none' : '';
   document.getElementById('diff-group').style.display = section !== 'demonlist' ? 'none' : '';
@@ -557,8 +549,7 @@ function togglePointsField() {
   document.getElementById('name-label').textContent = section === 'top' ? 'Ник игрока' : 'Название уровня';
 }
 
-
-// ── CSV IMPORT ────────────────────────────────────────────────
+// ── CSV IMPORT (ТЕПЕРЬ НАПРЯМУЮ СВЯЗАН С FIREBASE) ──────────────
 window.importCSV = async function() {
   const file = document.getElementById('import-file').files[0];
   if (!file) { showToast('⚠️ Выберите файл'); return; }
@@ -568,10 +559,9 @@ window.importCSV = async function() {
   const listName = section + '_' + platform;
   const text = await file.text();
 
-  // Определяем разделитель (запятая или точка с запятой)
   const sep = text.includes(';') ? ';' : ',';
   const lines = text.split('\n').filter(l => l.trim());
-  const dataLines = lines.slice(1); // пропускаем заголовок
+  const dataLines = lines.slice(1); 
 
   const items = [];
   for (const line of dataLines) {
@@ -589,22 +579,31 @@ window.importCSV = async function() {
 
   if (!items.length) { showToast('❌ Нет данных в файле'); return; }
 
-  // Показать превью
   const preview = document.getElementById('import-preview');
   preview.innerHTML = '<div style="font-family:DM Mono,monospace;font-size:11px;color:#888;margin-bottom:8px">Найдено записей: ' + items.length + '</div>' +
     items.slice(0,5).map(it => '<div style="font-family:DM Mono,monospace;font-size:10px;color:#aaa;padding:4px 0;border-bottom:1px solid #222">' +
       (it.name || it.player) + '</div>').join('') +
     (items.length > 5 ? '<div style="font-family:DM Mono,monospace;font-size:10px;color:#555;padding:4px 0">...и ещё ' + (items.length-5) + '</div>' : '') +
-    '<button class="btn" onclick="confirmImport(' + JSON.stringify(listName) + ', ' + JSON.stringify(items) + ')" style="margin-top:12px">✅ ПОДТВЕРДИТЬ ИМПОРТ</button>';
+    '<button class="btn" id="confirm-import-btn">✅ ПОДТВЕРДИТЬ ИМПОРТ</button>';
+
+  // Вешаем обработчик динамически внутри области видимости модуля
+  document.getElementById('confirm-import-btn').onclick = function() {
+    window.confirmImport(listName, items);
+  };
 }
 
 window.confirmImport = async function(listName, items) {
-  const ref = doc(db, 'lists', listName);
-  await setDoc(ref, { items });
-  document.getElementById('import-preview').innerHTML = '';
-  document.getElementById('import-file').value = '';
-  showToast('✅ Импортировано ' + items.length + ' записей!');
-  renderManageList();
+  try {
+    const ref = doc(db, 'lists', listName);
+    await setDoc(ref, { items });
+    document.getElementById('import-preview').innerHTML = '';
+    document.getElementById('import-file').value = '';
+    showToast('✅ Импортировано ' + items.length + ' записей!');
+    window.renderManageList();
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Ошибка Firebase. Проверьте консоль.');
+  }
 }
 
 window.downloadTemplate = function() {
@@ -629,8 +628,19 @@ window.downloadTemplate = function() {
   a.click();
 }
 
+// ── HELPERS ───────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtPts(p) { const n = parseFloat(p)||0; return n === Math.floor(n) ? n : n.toFixed(1); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if(!t) return;
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Закрытие модалки по клику на оверлей
 document.getElementById('adminModal').addEventListener('click', function(e) {
-  if (e.target === this) closeAdmin();
+  if (e.target === this) window.closeAdmin();
 });
 </script>
 </body>
