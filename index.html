@@ -15,6 +15,16 @@
     --gray2: #888888;
     --light: #cccccc;
     --white: #f0f0f0;
+    
+    /* Каноничные цвета GD демонов */
+    --gd-hard: #ff5500;
+    --gd-insane: #bf00ff;
+    --gd-extreme: #ff003c;
+    
+    /* Цвета подиума */
+    --gold: #ffd700;
+    --silver: #b0c4de;
+    --bronze: #cd7f32;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--black); color: var(--white); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
@@ -58,10 +68,17 @@
   .page-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 8vw, 96px); letter-spacing: 4px; line-height: 0.9; margin-bottom: 8px; }
   .page-sub { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--gray); text-transform: uppercase; margin-bottom: 32px; }
   
-  /* SEARCH BAR */
-  .search-wrapper { max-width: 400px; margin-bottom: 32px; position: relative; }
-  .search-input-main { width: 100%; background: var(--dark); border: 1px solid var(--border); border-radius: 6px; color: var(--white); font-family: 'DM Mono', monospace; font-size: 12px; padding: 12px 16px; outline: none; transition: all 0.2s; }
-  .search-input-main:focus { border-color: var(--gray2); background: var(--dark2); }
+  /* SEARCH BAR SPREAD */
+  .search-wrapper { max-width: 450px; margin-bottom: 32px; position: relative; }
+  .search-input-main { 
+    width: 100%; background: var(--dark); border: 1px solid var(--border); border-radius: 6px; 
+    color: var(--white); font-family: 'DM Mono', monospace; font-size: 12px; padding: 14px 18px; 
+    outline: none; transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1); 
+  }
+  .search-input-main:focus { 
+    border-color: #555; background: #131313; 
+    box-shadow: 0 0 20px rgba(255,255,255,0.03);
+  }
 
   .platform-tabs { display: flex; margin-bottom: 32px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content; }
   .platform-tab {
@@ -71,30 +88,62 @@
   }
   .platform-tab:last-child { border-right: none; }
   .platform-tab.active { background: var(--dark2); color: var(--white); }
-  .list-container { display: flex; flex-direction: column; gap: 2px; }
+  
+  /* LIST CONTAINERS & PREMIUM CARDS */
+  .list-container { display: flex; flex-direction: column; gap: 6px; }
   .list-item {
     display: grid; grid-template-columns: 52px 1fr auto auto;
-    align-items: center; gap: 16px; padding: 16px 20px;
+    align-items: center; gap: 16px; padding: 18px 24px;
     background: var(--dark); border: 1px solid var(--border); border-radius: 6px;
-    transition: all 0.2s; animation: slideIn 0.3s ease both;
+    transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1); 
+    animation: slideIn 0.3s ease both;
   }
-  @keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
-  .list-item:hover { background: var(--dark2); border-color: var(--gray); }
-  .list-item.rank-1 { border-left: 3px solid #ffffff; }
-  .list-item.rank-2 { border-left: 3px solid #bbbbbb; }
-  .list-item.rank-3 { border-left: 3px solid #777777; }
-  .rank { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--gray); line-height: 1; text-align: center; }
-  .list-item.rank-1 .rank { color: var(--white); }
-  .list-item.rank-2 .rank { color: var(--light); }
-  .list-item.rank-3 .rank { color: var(--gray2); }
-  .item-info { display: flex; flex-direction: column; gap: 3px; }
-  .item-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 15px; color: var(--white); }
-  .item-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gray); letter-spacing: 0.5px; }
-  .difficulty-badge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; border: 1px solid; }
-  .diff-hard { color: #aaa; border-color: #444; background: rgba(170,170,170,0.06); }
-  .diff-insane { color: #ddd; border-color: #666; background: rgba(220,220,220,0.06); }
-  .diff-extreme { color: #fff; border-color: #999; background: rgba(255,255,255,0.08); }
-  .item-points { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--white); text-align: right; white-space: nowrap; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  
+  /* Интерактивный подъем карточки при наведении */
+  .list-item:hover { 
+    background: #141414; 
+    border-color: #3a3a3a; 
+    transform: translateY(-3px); 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+  }
+  
+  /* Стилизация ТОП-3 Подиума */
+  .list-item.rank-1 { border-left: 4px solid var(--gold); background: linear-gradient(90deg, rgba(255,215,0,0.02) 0%, var(--dark) 100%); }
+  .list-item.rank-2 { border-left: 4px solid var(--silver); background: linear-gradient(90deg, rgba(176,196,222,0.02) 0%, var(--dark) 100%); }
+  .list-item.rank-3 { border-left: 4px solid var(--bronze); background: linear-gradient(90deg, rgba(205,127,50,0.02) 0%, var(--dark) 100%); }
+  
+  .rank { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--gray); line-height: 1; text-align: center; transition: color 0.2s; }
+  .list-item.rank-1 .rank { color: var(--gold); text-shadow: 0 0 15px rgba(255,215,0,0.2); }
+  .list-item.rank-2 .rank { color: var(--silver); text-shadow: 0 0 15px rgba(176,196,222,0.15); }
+  .list-item.rank-3 .rank { color: var(--bronze); }
+  
+  .item-info { display: flex; flex-direction: column; gap: 4px; }
+  .item-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 16px; color: var(--white); letter-spacing: -0.3px; }
+  .item-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--gray2); letter-spacing: 0.3px; }
+  
+  /* Прокачанные каноничные бейджи сложностей GD */
+  .difficulty-badge { 
+    font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
+    letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; 
+    border-radius: 4px; border: 1px solid; min-width: 110px; text-align: center;
+  }
+  .diff-hard { 
+    color: var(--gd-hard); border-color: rgba(255,85,0,0.3); 
+    background: rgba(255,85,0,0.04); 
+  }
+  .diff-insane { 
+    color: var(--gd-insane); border-color: rgba(191,0,255,0.3); 
+    background: rgba(191,0,255,0.04); 
+  }
+  .diff-extreme { 
+    color: #ff3366; border-color: rgba(255,0,60,0.4); 
+    background: rgba(255,0,60,0.06); 
+    box-shadow: 0 0 10px rgba(255,0,60,0.1);
+    text-shadow: 0 0 5px rgba(255,0,60,0.2);
+  }
+  
+  .item-points { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--white); text-align: right; white-space: nowrap; }
   .item-points span { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--gray); display: block; text-align: right; margin-top: 1px; }
   .top-item { grid-template-columns: 52px 1fr auto; }
   .empty-state { text-align: center; padding: 80px 20px; color: var(--gray); font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 1px; border: 1px dashed var(--border); border-radius: 8px; }
@@ -367,7 +416,6 @@ const auth = getAuth(app);
 const LISTS = ["demonlist_pc","demonlist_mobile","challengelist_pc","challengelist_mobile","top_pc","top_mobile"];
 const DIFF_CLASS = { 'Hard Demon':'diff-hard', 'Insane Demon':'diff-insane', 'Extreme Demon':'diff-extreme' };
 
-// Кэш для хранения загруженных данных из БД
 const dataCache = {};
 
 // ── REAL-TIME LISTENERS ──────────────────────────────────────
@@ -375,7 +423,7 @@ LISTS.forEach(listName => {
   const ref = doc(db, "lists", listName);
   onSnapshot(ref, snap => {
     const items = snap.exists() ? (snap.data().items || []) : [];
-    dataCache[listName] = items; // Сохраняем в локальный кэш
+    dataCache[listName] = items;
     renderList(listName);
   }, error => {
     console.error("Ошибка загрузки данных:", error);
@@ -390,18 +438,14 @@ function renderList(listName) {
 
   let rawItems = dataCache[listName] || [];
   
-  // Добавляем индекс изначального положения до сортировок и фильтрации
   let items = [];
   if (section === 'top') {
-    // Для топа сначала сортируем по очкам, чтобы присвоить честный ранг
     const sorted = [...rawItems].sort((a,b) => (parseFloat(b.points)||0) - (parseFloat(a.points)||0));
     items = sorted.map((item, idx) => ({ ...item, initialRank: idx + 1 }));
   } else {
-    // Для списков уровней ранг — это их порядок в массиве базы данных
     items = rawItems.map((item, idx) => ({ ...item, initialRank: idx + 1 }));
   }
 
-  // Применяем фильтр поиска
   const searchInput = document.getElementById(`search-${section}`);
   const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
@@ -451,7 +495,6 @@ function renderList(listName) {
   }
 }
 
-// Вызов фильтрации при вводе в поиск
 window.applySearch = function(section) {
   renderList(`${section}_pc`);
   renderList(`${section}_mobile`);
@@ -538,7 +581,7 @@ window.renderManageList = async function() {
     </div>`).join('');
 }
 
-// ── БЕЗОПАСНАЯ АВТОРИЗАЦИЯ FIREBASE ───────────────────────────
+// ── SECURITY ──────────────────────────────────────────────────
 window.checkPassword = async function() {
   const password = document.getElementById('pw-input').value;
   const adminEmail = "admin@nightprowlers.com"; 
@@ -650,7 +693,7 @@ window.confirmImport = async function(listName, items) {
     await setDoc(ref, { items });
     document.getElementById('import-preview').innerHTML = '';
     document.getElementById('import-file').value = '';
-    showToast('✅ Импортировано ' + items.length + ' записей!');
+    showToast('✅ :Импортировано ' + items.length + ' записей!');
     window.renderManageList();
   } catch (err) {
     console.error(err);
