@@ -16,7 +16,10 @@
     <button onclick="showPage('challengelist', this)">Challenge List</button>
     <button onclick="showPage('top', this)">Top Players</button>
   </nav>
-  <button class="admin-btn" onclick="openAdmin()">ADMIN</button>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <button class="submit-record-btn" onclick="openSubmitModal()">ПОДАТЬ РЕКОРД</button>
+    <button class="admin-btn" onclick="openAdmin()">ADMIN</button>
+  </div>
 </header>
 
 <main>
@@ -63,8 +66,49 @@
   </div>
 </main>
 
-<div class="modal-overlay" id="adminModal">
+<div class="modal-overlay" id="submitModal">
   <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">ПОДАТЬ РЕКОРД</div>
+      <button class="modal-close" onclick="closeSubmitModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Раздел</label>
+          <select id="sub-section">
+            <option value="demonlist">Demon List</option>
+            <option value="challengelist">Challenge List</option>
+            <option value="top">Top Players (Прямой рейтинг)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Платформа</label>
+          <select id="sub-platform">
+            <option value="pc">PC</option>
+            <option value="mobile">Mobile</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Ваш Никнейм</label>
+        <input type="text" id="sub-player" placeholder="YandziGMD">
+      </div>
+      <div class="form-group">
+        <label>Название уровня / Ник (для Топа)</label>
+        <input type="text" id="sub-name" placeholder="Bloodbath">
+      </div>
+      <div class="form-group">
+        <label>Ссылка на видео-доказательство (YouTube / Twitch)</label>
+        <input type="url" id="sub-video" placeholder="https://www.youtube.com/watch?v=...">
+      </div>
+      <button class="btn btn-primary" onclick="submitRecord()">ОТПРАВИТЬ НА ПРОВЕРКУ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="adminModal">
+  <div class="modal" style="max-width: 600px;">
     <div class="modal-header">
       <div class="modal-title">ADMIN PANEL</div>
       <button class="modal-close" onclick="closeAdmin()">✕</button>
@@ -79,6 +123,7 @@
       <div id="admin-panel" style="display:none">
         <div class="admin-tabs">
           <button class="admin-tab active" onclick="switchAdminTab('add',this)">Добавить</button>
+          <button class="admin-tab" onclick="switchAdminTab('review',this)">Заявки (<span id="review-count">0</span>)</button>
           <button class="admin-tab" onclick="switchAdminTab('import',this)">Импорт CSV</button>
           <button class="admin-tab" onclick="switchAdminTab('manage',this)">Управление</button>
         </div>
@@ -128,6 +173,10 @@
             </div>
           </div>
           <button class="btn" onclick="addEntry()">ДОБАВИТЬ</button>
+        </div>
+
+        <div class="admin-section" id="admin-review">
+          <div class="manage-list" id="review-list"></div>
         </div>
 
         <div class="admin-section" id="admin-manage">
